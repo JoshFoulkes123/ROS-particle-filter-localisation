@@ -1,0 +1,60 @@
+def update_particle_cloud(self, scan):
+        """
+        This should use the supplied laser scan to update the current
+        particle cloud. i.e. self.particlecloud should be updated.
+
+        :Args:
+            | scan (sensor_msgs.msg.LaserScan): laser scan to use for update
+
+         """
+
+        self.weights_of_poses = [None]*self.M#create array to store particles
+        self.previous_cloud = self.particlecloud#holt previous particle cloud
+        self.roulett_weight = [0]*self.M#create array to hold roulette weights
+        self.total_sum = 0;#sum of all the weights
+        highest_weight = 0#store highest current wieght
+        self.highest_weight_pos = 0 #store postion of highest weight
+        for i in range(0,self.M):#loop for number of particles, generates roulett wheel weights
+            #rospy.loginfo(i)
+            weight = (self.sensor_model.get_weight(scan, self.particlecloud.poses[i]))#get weight of particle
+            #w_avg = w_avg + ( 1/self.M) * weight
+            self.weights_of_poses[i] = weight#add array of weights
+            if (weight > highest_weight):#get position of highest weight
+                highest_weight = weight
+                self.highest_weight_pos = i
+            #for roulett wheel
+            self.total_sum = self.total_sum + float(weight)#update current total of the weights
+            self.roulett_weight[i] = self.total_sum#update the roulet wheel weights
+            #rospy.loginfo(self.roulett_weight)
+
+
+        #self.best_pose = Pose()#to store most likely pose
+        #self.best_pose = self.particlecloud.poses[self.highest_weight_pos]#gets most likely pose from previous particle cloud
+
+
+
+        for p in range(0,self.M):#to generate particle rasamppled from previous particles
+            rand_val = random.random() * self.total_sum#gets random number within max total roulette wheel weight
+            #rospy.loginfo(rand_val)
+            i = 0
+            weight = self.roulett_weight[0]
+            highest_weight = 0
+            while(1):#gets psotion where the random value lies
+                if (float(rand_val) < float(weight)):
+                    break
+                i =i+1
+                weight = self.roulett_weight[i]
+
+            pose = self.particlecloud.poses[p]
+            pose.position.x= random.gauss(self.previous_cloud.poses[i].position.x, self.other_noise)#create particle around the previous particle
+            pose.position.y= random.gauss(self.previous_cloud.poses[i].position.y, self.other_noise)
+            _pose= Pose()
+            pose.orientation= rotateQuaternion(Quaternion(w=1.0),random.gauss(getHeading(self.previous_cloud.poses[i].orientation), math.pi/10))
+            self.particlecloud.poses[p] = pose #sets particle cloud to that pose
+
+
+        
+        
+        
+        
+        

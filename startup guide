@@ -1,0 +1,10 @@
+roscore
+rosrun map_server map_server catkin_ws/src/pf_localisation/data/sim_data/meeting.yaml
+ rosrun stage_ros stageros catkin_ws/src/socspioneer/data/meeting.world
+rosrun stage_ros stageros catkin_ws/src/pf_localisation/data/sim_data/meeting.world
+
+roslaunch socspioneer keyboard_teleop.launch
+rosrun pf_localisation node.py
+
+setup rviz with map; laserscan and pose
+set 2D estimatre pose in rviz
